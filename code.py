@@ -1,7 +1,45 @@
 import streamlit as st
 import sqlite3
+import os
 
 DB_PATH = 'rental.db'  # cesta k SQLite DB
+
+# --- Funkce pro inicializaci DB ---
+def init_db():
+    if not os.path.exists(DB_PATH):
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        # Vytvořit tabulky
+        cur.execute('''CREATE TABLE clients (
+            id INTEGER PRIMARY KEY,
+            company_name TEXT,
+            address TEXT,
+            ico TEXT,
+            discount REAL,
+            contact_person TEXT
+        )''')
+        cur.execute('''CREATE TABLE machines (
+            id INTEGER PRIMARY KEY,
+            name TEXT,
+            description TEXT,
+            price_per_day REAL,
+            available INTEGER
+        )''')
+        # Naplnit ukázkovými daty
+        clients_data = [
+            (1,"Stavební s.r.o.","Ulice 12, Město","12345678",0.10,"Jan Novák"),
+            (2,"Developer a.s.","Projektová 5, Město","87654321",0.05,"Petra Malá"),
+            (3,"ABC Konstrukce","Hlavní 1, Město","11223344",0.15,"Karel Doležal"),
+        ]
+        machines_data = [
+            (1,"Bagr CAT 320","Střední pásový bagr",1500,1),
+            (2,"Nakladač JCB 3CX","Kolový nakladač",1200,0),
+            (3,"Zhutňovač Wacker","Zhutňovač zeminy",600,1),
+        ]
+        cur.executemany('INSERT INTO clients VALUES (?,?,?,?,?,?)', clients_data)
+        cur.executemany('INSERT INTO machines VALUES (?,?,?,?,?)', machines_data)
+        conn.commit()
+        conn.close()
 
 # --- Funkce pro načtení dat z DB ---
 def load_clients():
@@ -19,6 +57,9 @@ def load_machines():
     machines = cur.fetchall()
     conn.close()
     return machines
+
+# --- Inicializace DB ---
+init_db()
 
 # --- Načtení dat ---
 clients = load_clients()
